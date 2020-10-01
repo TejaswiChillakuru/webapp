@@ -13,7 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping(value = "/v1/user")
-public class UserController 
+public class UserController {
     @Autowired
     private UserDao userDao;
 
