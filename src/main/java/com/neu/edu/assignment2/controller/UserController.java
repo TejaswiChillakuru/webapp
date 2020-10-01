@@ -11,9 +11,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-//@RestController
+@RestController
 @RequestMapping(value = "/v1/user")
-public class UserController {
+public class UserController 
     @Autowired
     private UserDao userDao;
 
