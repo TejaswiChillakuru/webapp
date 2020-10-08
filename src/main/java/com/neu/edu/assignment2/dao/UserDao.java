@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class UserDao {
@@ -180,5 +182,17 @@ public class UserDao {
             return null;
         }
     }
+    public boolean validatePassword(String pass){
+        String regex = "^([a-zA-Z0-9@*#]{8,15})$";
+        Pattern p=Pattern.compile(regex);
+        if (pass == null) {
+            return false;
+        }
+        Matcher m = p.matcher(pass);
+        boolean res=m.matches();
+        System.out.println(res);
+        return  res;
+    }
 
 }
+
