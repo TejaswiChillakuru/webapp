@@ -2,6 +2,8 @@ package com.neu.edu.assignment2.controller;
 
 
 import com.neu.edu.assignment2.dao.UserDao;
+import com.neu.edu.assignment2.model.Answers;
+import com.neu.edu.assignment2.model.Question;
 import com.neu.edu.assignment2.model.User;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.HttpStatus;
@@ -11,22 +13,25 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @RestController
-@RequestMapping(value = "/v1/user")
+@RequestMapping(value = "/v1")
 public class UserController {
     @Autowired
     private UserDao userDao;
 
-    @PostMapping
+    @PostMapping(value = "/user")
     @ApiOperation(value="Create a user")
     public Object addUser(@RequestBody User user){
         try{
             String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
             String password = "^([a-zA-Z0-9@*#]{8,15})$";
-            //System.out.println(user.getUsername().matches(regex));
-            //System.out.println(user.getPassword().matches(password));
-            if((user.getUsername()!=null&&!user.getUsername().matches(regex))|| (!user.getPassword().matches(password))){
-                throw new Exception();
+            if((user.getUsername()!=null&&!user.getUsername().matches(regex))){
+                return new ResponseEntity<>("Please enter valid Username",HttpStatus.BAD_REQUEST);
+            }
+            if(user.getPassword()!=null&&!user.getPassword().matches(password)){
+                return new ResponseEntity<>("Please enter valid password",HttpStatus.BAD_REQUEST);
             }
             return userDao.addUser(user);
         }catch(Exception ex){
@@ -34,37 +39,146 @@ public class UserController {
         }
     }
 
-    @GetMapping(value="/self")
+
+    @GetMapping(value="/user/self")
     @ApiOperation(value="Get User Information")
-    public User getUser(@AuthenticationPrincipal User user){
+    public Object getUser(@AuthenticationPrincipal User user){
         System.out.println("password:"+user.getPassword());
         User u = userDao.getUser(user.getUserId());
         try {
             if (!u.getPassword().equalsIgnoreCase(user.getPassword())) {
-                throw new Exception();
+                return new ResponseEntity<>("Invalid Credentials",HttpStatus.FORBIDDEN);
             }
         }catch(Exception ex){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid Credentials",ex);
         }
         return u;
     }
-    @PutMapping(value="/self")
+    @PutMapping(value="/user/self")
     @ApiOperation(value="Update User Information")
     public Object updateUser(@AuthenticationPrincipal User loggedUser , @RequestBody User user){
         try {
 
             if (user.getUsername() != null || user.getAccountCreated() != null || user.getAccountUpdated() != null) {
-                throw new Exception();
+                return new ResponseEntity<>("Cannot update username/accountupdated/account created fields",HttpStatus.BAD_REQUEST);
             }
             String password = "^([a-zA-Z0-9@*#]{8,15})$";
             if(user.getPassword()!=null&&!user.getPassword().matches(password)){
-                throw new Exception();
+                return new ResponseEntity<>("Please enter valid password",HttpStatus.BAD_REQUEST);
             }
-            return (User) userDao.updateUser(loggedUser.getUserId(), user);
+            userDao.updateUser(loggedUser.getUserId(), user);
+            return HttpStatus.NO_CONTENT;
         }catch(Exception e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request",e);
         }
     }
+    @GetMapping("/user/{id}")
+    public Object getUserDetails(@PathVariable String id){
+        try {
+            return userDao.getUser(id);
+        }catch(Exception e){
+            return new ResponseEntity<>("User not found",HttpStatus.NOT_FOUND);
+        }
+    }
+    @PostMapping("/question")
+    public Object addQuestions(@AuthenticationPrincipal User loggedUser,@RequestBody Question question){
+        try {
+            question.setUserId(loggedUser.getUserId());
+            Question q = userDao.addQuestion(question);;
+            return new ResponseEntity<Question>(q,HttpStatus.CREATED);
+        }catch(Exception e){
+            return new ResponseEntity<>("Bad Request",HttpStatus.BAD_REQUEST);
+        }
+    }
+    @PostMapping(value="/question/{question_id}/answer")
+    public Object addAnswers(@AuthenticationPrincipal User loggedUser, @RequestBody Answers answer, @PathVariable String question_id){
+        try {
+            answer.setUserId(loggedUser.getUserId());
+            answer.setQuestionId(question_id);
+            return userDao.addAnswer(answer);
+        }catch(Exception e){
+            return new ResponseEntity<>("Bad Request",HttpStatus.BAD_REQUEST);
+        }
+    }
+    @PutMapping(value="/question/{question_id}/answer/{answer_id}")
+    public Object updateAnswer(@AuthenticationPrincipal User loggedUser,@RequestBody Answers answer, @PathVariable String question_id, @PathVariable String answer_id){
+        Answers ans = userDao.getAnswer(answer_id);
+        if(ans==null)
+            return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
+        if(!ans.getUserId().equals(loggedUser.getUserId()))
+            return new ResponseEntity<>("Cannot Update Answer",HttpStatus.UNAUTHORIZED);
+            answer.setUserId(loggedUser.getUserId());
+            answer.setQuestionId(question_id);
+            answer.setAnswerId(answer_id);
+            Answers a = (Answers)userDao.updateAnswer(answer);
+            if(a==null)
+                return new ResponseEntity<>("Please enter valid input",HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
 
+    }
+    @GetMapping(value="/question/{question_id}/answer/{answer_id}")
+    public Object getAnswer(@PathVariable String question_id, @PathVariable String answer_id){
+        try {
+            return userDao.getAnswer(answer_id);
+        }catch(Exception e){
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        }
+    }
+    @GetMapping(value="/questions")
+    public List<Question> getAllQuestions(){
+        return userDao.getAllQuestions();
+    }
+    @GetMapping(value="/question/{questionId}")
+    public Object getQuestion(@PathVariable String questionId){
+            Question q =  userDao.getQuestion(questionId);
+            if(q==null)
+                return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+            return q;
+
+    }
+    @DeleteMapping(value="/question/{question_id}/answer/{answer_id}")
+    public Object deleteAnswer(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id, @PathVariable String answer_id){
+        Answers ans = userDao.getAnswer(answer_id);
+        if(!ans.getUserId().equals(loggedUser.getUserId()))
+            return new ResponseEntity<>("Cannot Delete Answer",HttpStatus.UNAUTHORIZED);
+        try {
+            userDao.deleteAnswer(question_id, answer_id);
+            return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+        }catch(Exception e){
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        }
+    }
+    @DeleteMapping(value="/question/{question_id}")
+    public Object deleteQuestion(@AuthenticationPrincipal User loggedUser,@PathVariable String question_id){
+        Question q = (Question)getQuestion(question_id);
+        if(q==null)
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        if(!q.getAnswers().isEmpty())
+            return new ResponseEntity<>("Question cannot be deleted",HttpStatus.BAD_REQUEST);
+        if(!loggedUser.getUserId().equals(q.getUserId()))
+            return new ResponseEntity<>("User Cannot Update/delete question",HttpStatus.UNAUTHORIZED);
+        try {
+            userDao.deleteQuestion(question_id, loggedUser.getUserId());
+            return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+        }catch(Exception e){
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        }
+    }
+    @PutMapping(value="/question/{question_id}")
+    public Object updateQuestion(@AuthenticationPrincipal User loggedUser, @RequestBody Question question, @PathVariable String question_id){
+        question.setQuestionId(question_id);
+        Question q = (Question) userDao.getQuestion(question_id);
+        if(q==null)
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        if(!loggedUser.getUserId().equals(q.getUserId()))
+            return new ResponseEntity<>("User Cannot Update/delete question",HttpStatus.UNAUTHORIZED);
+        try {
+            q = (Question)userDao.updateQuestion(question, q,loggedUser.getUserId());
+        } catch (Exception e) {
+            return new ResponseEntity<>("Unable to update question",HttpStatus.BAD_REQUEST);
+        }
+        if(q==null)
+            return new ResponseEntity<>("Unable to update question",HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
-
