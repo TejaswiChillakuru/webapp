@@ -4,6 +4,7 @@ import com.neu.edu.assignment2.dao.UserDao;
 import com.neu.edu.assignment2.model.User;
 import com.neu.edu.assignment2.repository.UserRepository;
 import org.junit.Test;
+import org.junit.platform.commons.annotation.Testable;
 import org.junit.runner.RunWith;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
+@Testable
 public class Assignment2ApplicationTests {
 
     @Autowired
