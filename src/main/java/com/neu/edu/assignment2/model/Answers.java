@@ -5,13 +5,14 @@ import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name="answers")
 public class Answers {
     @Id
     @GeneratedValue(generator="system-uuid")
-    @GenericGenerator(name="system-uuid", strategy = "uuid")
+    @GenericGenerator(name="system-uuid", strategy = "org.hibernate.id.UUIDGenerator")
     @ApiModelProperty(readOnly = true)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Column(name="answerId", columnDefinition = "VARCHAR(255)", insertable = false, updatable = false, nullable = false)
@@ -46,6 +47,10 @@ public class Answers {
     @ApiModelProperty(required = true)
     @JsonProperty("answer_text")
     private String answerText;
+
+    @Column(name="AnswerFiles",nullable=false)
+    @OneToMany (mappedBy = "answers")
+    private List<AnswerFiles> files;
 
     public String getAnswerId() {
         return answerId;
@@ -93,5 +98,13 @@ public class Answers {
 
     public void setAnswerText(String answerText) {
         this.answerText = answerText;
+    }
+
+    public List<AnswerFiles> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<AnswerFiles> files) {
+        this.files = files;
     }
 }

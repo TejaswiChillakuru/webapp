@@ -1,19 +1,33 @@
 package com.neu.edu.assignment2.controller;
 
 
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.neu.edu.assignment2.dao.UserDao;
-import com.neu.edu.assignment2.model.Answers;
-import com.neu.edu.assignment2.model.Question;
-import com.neu.edu.assignment2.model.User;
+import com.neu.edu.assignment2.model.*;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.activation.MimetypesFileTypeMap;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "/v1")
@@ -80,7 +94,7 @@ public class UserController {
             return new ResponseEntity<>("User not found",HttpStatus.NOT_FOUND);
         }
     }
-    @PostMapping("/question")
+    @PostMapping(value="/question")
     public Object addQuestions(@AuthenticationPrincipal User loggedUser,@RequestBody Question question){
         try {
             question.setUserId(loggedUser.getUserId());
@@ -181,4 +195,135 @@ public class UserController {
             return new ResponseEntity<>("Unable to update question",HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+    @PostMapping(value="/question/{question_id}/file",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Object uploadQuestionFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id , @RequestParam(value = "file") MultipartFile file){
+        BasicAWSCredentials creds = new BasicAWSCredentials("AKIAVE3GALMKPUXVGOXX", "2JpBcOELMNEqIGxFkEVAHBJRvUz+Y4CIL+zJr3nM");
+        AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
+        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
+        String bucket_name = "webapp.tejaswi.chillakuru";
+        UUID uuid = UUID.randomUUID();
+        String keyName = question_id+"/"+uuid.toString()+"/"+file.getOriginalFilename();
+        String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+
+        if(!extension.equals("png")&&!extension.equals("jpg")&&!extension.equals("jpeg")){
+            return new ResponseEntity<>("Invalid Image Type",HttpStatus.BAD_REQUEST);
+        }
+        try{
+            QuestionFiles f = new QuestionFiles();
+            f.setFileId(uuid.toString());
+            f.setUserId(loggedUser.getUserId());
+            f.setMime(extension);
+            f.setQuestionId(question_id);
+            f.setFileName(file.getName());
+            f.setSize(String.valueOf(file.getSize()));
+            f.setS3objectName(keyName);
+            QuestionFiles output = userDao.saveFile(f);
+
+            File convFile = new File(file.getOriginalFilename());
+            convFile.createNewFile();
+            FileOutputStream fos = new FileOutputStream(convFile);
+            fos.write(file.getBytes());
+            fos.close();
+
+
+            s3.putObject(bucket_name,keyName,convFile);
+            return output;
+
+        }catch(AmazonServiceException | IOException e){
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+    @DeleteMapping(value="/question/{question_id}/file/{file_id}")
+    public Object deleteFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id, @PathVariable String file_id ){
+        QuestionFiles files = userDao.getFile(file_id);
+        BasicAWSCredentials creds = new BasicAWSCredentials("AKIAVE3GALMKPUXVGOXX", "2JpBcOELMNEqIGxFkEVAHBJRvUz+Y4CIL+zJr3nM");
+        AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
+        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
+        String bucket_name = "webapp.tejaswi.chillakuru";
+        try {
+            s3.deleteObject(bucket_name, files.getS3objectName());
+        } catch (AmazonServiceException e) {
+            System.err.println(e.getErrorMessage());
+            System.exit(1);
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        }
+        if(!files.getUserId().equals(loggedUser.getUserId()))
+            return new ResponseEntity<>("Cannot Delete File",HttpStatus.UNAUTHORIZED);
+        try {
+            System.out.println(file_id);
+            userDao.deleteFile(question_id, file_id);
+            return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping(value="/question/{question_id}/answer/{answer_id}/file",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Object uploadAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id ,@PathVariable String answer_id , @RequestParam(value = "file") MultipartFile file){
+        BasicAWSCredentials creds = new BasicAWSCredentials("AKIAVE3GALMKPUXVGOXX", "2JpBcOELMNEqIGxFkEVAHBJRvUz+Y4CIL+zJr3nM");
+        AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
+        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
+        String bucket_name = "webapp.tejaswi.chillakuru";
+        UUID uuid = UUID.randomUUID();
+        String keyName = answer_id+"/"+uuid.toString()+"/"+file.getOriginalFilename();
+        String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+
+        if(!extension.equals("png")&&!extension.equals("jpg")&&!extension.equals("jpeg")){
+            return new ResponseEntity<>("Invalid Image Type",HttpStatus.BAD_REQUEST);
+        }
+        try{
+            AnswerFiles f = new AnswerFiles();
+            f.setFileId(uuid.toString());
+            f.setUserId(loggedUser.getUserId());
+            f.setMime(extension);
+            f.setAnswerId(answer_id);
+            f.setFileName(file.getName());
+            f.setSize(String.valueOf(file.getSize()));
+            f.setS3objectName(keyName);
+            AnswerFiles output = userDao.saveAnswerFile(f);
+
+            File convFile = new File(file.getOriginalFilename());
+            convFile.createNewFile();
+            FileOutputStream fos = new FileOutputStream(convFile);
+            fos.write(file.getBytes());
+            fos.close();
+
+
+            s3.putObject(bucket_name,keyName,convFile);
+            return output;
+
+        }catch(AmazonServiceException | IOException e){
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @DeleteMapping(value="/question/{question_id}/answer/{answer_id}/file/{file_id}")
+    public Object deleteAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id,@PathVariable String answer_id, @PathVariable String file_id ){
+        AnswerFiles files = userDao.getAnswerFile(file_id);
+        BasicAWSCredentials creds = new BasicAWSCredentials("AKIAVE3GALMKPUXVGOXX", "2JpBcOELMNEqIGxFkEVAHBJRvUz+Y4CIL+zJr3nM");
+        AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
+        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
+        String bucket_name = "webapp.tejaswi.chillakuru";
+        try {
+            s3.deleteObject(bucket_name, files.getS3objectName());
+        } catch (AmazonServiceException e) {
+            System.err.println(e.getErrorMessage());
+            System.exit(1);
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        }
+        if(!files.getUserId().equals(loggedUser.getUserId()))
+            return new ResponseEntity<>("Cannot Delete File",HttpStatus.UNAUTHORIZED);
+        try {
+            System.out.println(file_id);
+            userDao.deleteAnswerFile(answer_id, file_id);
+            return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        }
+    }
+
 }

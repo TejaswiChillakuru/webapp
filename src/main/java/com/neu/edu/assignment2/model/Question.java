@@ -46,6 +46,10 @@ public class Question {
     @ManyToMany (cascade={CascadeType.MERGE,CascadeType.PERSIST})
     private List<Categories> categories;
 
+    @Column(name="QuestionFiles",nullable=false)
+    @OneToMany (mappedBy = "question")
+    private List<QuestionFiles> files;
+
     public String getQuestionId() {
         return questionId;
     }
@@ -100,5 +104,13 @@ public class Question {
 
     public void setCategories(List<Categories> categories) {
         this.categories = categories;
+    }
+
+    public List<QuestionFiles> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<QuestionFiles> files) {
+        this.files = files;
     }
 }

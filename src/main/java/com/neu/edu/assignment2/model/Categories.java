@@ -12,7 +12,7 @@ import java.util.List;
 public class Categories {
     @Id
     @GeneratedValue(generator="system-uuid")
-    @GenericGenerator(name="system-uuid", strategy = "uuid")
+    @GenericGenerator(name="system-uuid", strategy = "org.hibernate.id.UUIDGenerator")
     @ApiModelProperty(readOnly = true)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Column(name="categoryId", columnDefinition = "VARCHAR(255)", insertable = false, updatable = false, nullable = false)
