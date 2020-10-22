@@ -1,13 +1,7 @@
 package com.neu.edu.assignment2.dao;
 
-import com.neu.edu.assignment2.model.Answers;
-import com.neu.edu.assignment2.model.Categories;
-import com.neu.edu.assignment2.model.Question;
-import com.neu.edu.assignment2.model.User;
-import com.neu.edu.assignment2.repository.AnswerRepository;
-import com.neu.edu.assignment2.repository.CategoryRepository;
-import com.neu.edu.assignment2.repository.QuestionRepository;
-import com.neu.edu.assignment2.repository.UserRepository;
+import com.neu.edu.assignment2.model.*;
+import com.neu.edu.assignment2.repository.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -33,6 +28,10 @@ public class UserDao {
     CategoryRepository categoriesRepository;
     @Autowired
     AnswerRepository answerRepository;
+    @Autowired
+    FileRepository fileRepository;
+    @Autowired
+    AnswerFileRepository anwerFileRepository;
 
     public User addUser(User user){
         user.setPassword(bcryptEncoder.encode(user.getPassword()));
@@ -194,5 +193,39 @@ public class UserDao {
         return  res;
     }
 
-}
+    public QuestionFiles saveFile(QuestionFiles f){
+        String date = String.valueOf(java.time.LocalDateTime.now());
+        f.setCreatedDate(date);
+        return fileRepository.save(f);
+    }
 
+    public QuestionFiles getFile(String fileId){
+        try {
+            return fileRepository.findById(fileId).get();
+        }catch(Exception e){
+            return null;
+        }
+    }
+    public void deleteFile(String question_id, String file_id){
+        fileRepository.deleteById(file_id);
+    }
+
+    public AnswerFiles saveAnswerFile(AnswerFiles f){
+        String date = String.valueOf(java.time.LocalDateTime.now());
+        f.setCreatedDate(date);
+        return anwerFileRepository.save(f);
+    }
+    public AnswerFiles getAnswerFile(String fileId){
+        try {
+            return anwerFileRepository.findById(fileId).get();
+        }catch(Exception e){
+            return null;
+        }
+    }
+    public void deleteAnswerFile(String answer_id, String file_id){
+        anwerFileRepository.deleteById(file_id);
+    }
+
+
+
+}
