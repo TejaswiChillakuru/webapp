@@ -1,12 +1,16 @@
+/home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/repository/AnswerFileRepository.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/service/CustomUserDetailsService.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/repository/UserRepository.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/config/UserConfig.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/repository/AnswerRepository.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/Assignment2Application.java
+/home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/repository/FileRepository.java
+/home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/model/QuestionFiles.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/model/CustomUserDetails.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/model/User.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/model/Answers.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/dao/UserDao.java
+/home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/model/AnswerFiles.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/config/WebSecurityConfig.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/model/Question.java
 /home/tejaswi/webapp/src/main/java/com/neu/edu/assignment2/repository/CategoryRepository.java
