@@ -122,13 +122,13 @@ public class UserController {
             return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
         if(!ans.getUserId().equals(loggedUser.getUserId()))
             return new ResponseEntity<>("Cannot Update Answer",HttpStatus.UNAUTHORIZED);
-            answer.setUserId(loggedUser.getUserId());
-            answer.setQuestionId(question_id);
-            answer.setAnswerId(answer_id);
-            Answers a = (Answers)userDao.updateAnswer(answer);
-            if(a==null)
-                return new ResponseEntity<>("Please enter valid input",HttpStatus.BAD_REQUEST);
-            return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+        answer.setUserId(loggedUser.getUserId());
+        answer.setQuestionId(question_id);
+        answer.setAnswerId(answer_id);
+        Answers a = (Answers)userDao.updateAnswer(answer);
+        if(a==null)
+            return new ResponseEntity<>("Please enter valid input",HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
 
     }
     @GetMapping(value="/question/{question_id}/answer/{answer_id}")
@@ -145,10 +145,10 @@ public class UserController {
     }
     @GetMapping(value="/question/{questionId}")
     public Object getQuestion(@PathVariable String questionId){
-            Question q =  userDao.getQuestion(questionId);
-            if(q==null)
-                return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
-            return q;
+        Question q =  userDao.getQuestion(questionId);
+        if(q==null)
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        return q;
 
     }
     @DeleteMapping(value="/question/{question_id}/answer/{answer_id}")
@@ -198,8 +198,15 @@ public class UserController {
     }
     @PostMapping(value="/question/{question_id}/file",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Object uploadQuestionFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id , @RequestParam(value = "file") MultipartFile file){
+        String accessKey="AKIASVHASTC5EPAU5TKX";
+        String secretKey="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";
+        Question q = (Question) userDao.getQuestion(question_id);
+        if(q==null)
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        if(!loggedUser.getUserId().equals(q.getUserId()))
+            return new ResponseEntity<>("User Cannot Update/delete question",HttpStatus.UNAUTHORIZED);
         Map<String, String> env = System.getenv();
-        BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
+        BasicAWSCredentials creds = new BasicAWSCredentials(accessKey, secretKey);
         AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
         String bucket_name = "webapp.tejaswi.chillakuru";
@@ -238,8 +245,14 @@ public class UserController {
     }
     @DeleteMapping(value="/question/{question_id}/file/{file_id}")
     public Object deleteFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id, @PathVariable String file_id ){
+        String accessKey="AKIASVHASTC5EPAU5TKX";
+        String secretKey="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";
         QuestionFiles files = userDao.getFile(file_id);
-        BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
+        if(files==null)
+            return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
+        if(!loggedUser.getUserId().equals(files.getUserId()))
+            return new ResponseEntity<>("User Cannot Update/delete question",HttpStatus.UNAUTHORIZED);
+        BasicAWSCredentials creds = new BasicAWSCredentials(accessKey, secretKey);
         AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
         String bucket_name = "webapp.tejaswi.chillakuru";
@@ -264,7 +277,14 @@ public class UserController {
 
     @PostMapping(value="/question/{question_id}/answer/{answer_id}/file",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Object uploadAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id ,@PathVariable String answer_id , @RequestParam(value = "file") MultipartFile file){
-        BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
+        String accessKey="AKIASVHASTC5EPAU5TKX";
+        String secretKey="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";
+        Answers ans = userDao.getAnswer(answer_id);
+        if(ans==null)
+            return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
+        if(!ans.getUserId().equals(loggedUser.getUserId()))
+            return new ResponseEntity<>("Cannot Upload File",HttpStatus.UNAUTHORIZED);
+        BasicAWSCredentials creds = new BasicAWSCredentials(accessKey, secretKey);
         AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
         String bucket_name = "webapp.tejaswi.chillakuru";
@@ -304,8 +324,14 @@ public class UserController {
 
     @DeleteMapping(value="/question/{question_id}/answer/{answer_id}/file/{file_id}")
     public Object deleteAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id,@PathVariable String answer_id, @PathVariable String file_id ){
+        String accessKey="AKIASVHASTC5EPAU5TKX";
+        String secretKey="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";
         AnswerFiles files = userDao.getAnswerFile(file_id);
-        BasicAWSCredentials creds = new BasicAWSCredentials("accesskey", "secretkey");
+        if(files==null)
+            return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
+        if(!files.getUserId().equals(loggedUser.getUserId()))
+            return new ResponseEntity<>("Cannot Delete File",HttpStatus.UNAUTHORIZED);
+        BasicAWSCredentials creds = new BasicAWSCredentials(accessKey, secretKey);
         AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
         String bucket_name = "webapp.tejaswi.chillakuru";
@@ -329,4 +355,3 @@ public class UserController {
     }
 
 }
-
