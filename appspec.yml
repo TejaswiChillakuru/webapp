@@ -1,0 +1,23 @@
+version: 0.0
+os: linux
+
+files:
+  - source: ./target/assignment2-0.0.1-SNAPSHOT.jar
+    destination: /home/ubuntu
+
+hooks:
+  ApplcationStop:
+    - location: ./codedeploy_scripts/applicationStop.sh
+      timeout: 1200
+
+  BeforeInstall:
+    - location: ./codedeploy_scripts/beforeInstall.sh
+      timeout: 1200
+
+  AfterInstall:
+    - location: ./codedeploy_scripts/afterInstall.sh
+      timeout: 1200
+
+  ApplicationStart:
+    - location: ./codedeploy_scripts/applicationStart.sh
+      timeout: 1200
