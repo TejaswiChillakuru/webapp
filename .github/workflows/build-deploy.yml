@@ -48,9 +48,12 @@ jobs:
       run: |
         output=$(aws deploy create-deployment \
           --application-name ${{ env.CODEDEPLOY_APPLICATION_NAME }} \
+          --deployment-group-name ${{ env.CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME }} \
+          --s3-location bucket ${secrets.S3_CODE_DEPLOY_BUCKET} \
           --region ${{ env.AWS_REGION }} \
+          --deployment-config-name CodeDeployDefault.AllAtOnce  \
           --output json)
-
+ 
           echo $output
 
           dId=$(echo $output | jq -r '.deploymetId')
