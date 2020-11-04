@@ -51,8 +51,7 @@ jobs:
           --deployment-group-name ${{ env.CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME }} \
           --s3-location bucket codedeploy.dev.tejaswichillakuru.me \
           --region ${{ env.AWS_REGION }} \
-          --deployment-config-name CodeDeployDefault.AllAtOnce  \
-          --output json)
+          --deployment-config-name CodeDeployDefault.AllAtOnce)
           echo $output
           dId=$(echo $output | jq -r '.deploymetId')
           aws deploy wait deployment-successful --deployment-id $dId
