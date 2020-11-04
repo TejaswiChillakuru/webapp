@@ -14,7 +14,9 @@ jobs:
       with:
         java-version: 1.8
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
       run: mvn package
-      store_artifacts:
-      path: target/assignment2-0.0.1-SNAPSHOT.war
+    - name: Artifacts 
+      uses: actions/upload-artifact@v2
+      with:
+        name: dist-without-markdown
+        path: target/assignment2-0.0.1-SNAPSHOT.war
