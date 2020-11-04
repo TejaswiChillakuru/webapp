@@ -16,4 +16,3 @@ mvn install: it will do everything mvn test does and then if everything looks fi
 Note: Update the db connections in your properties file.
 
 
-#Demo changes
