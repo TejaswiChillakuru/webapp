@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 
 files:
-  - source: ./target/assignment2-0.0.1-SNAPSHOT.jar
+  - source: ./
     destination: /home/ubuntu
 
 hooks:
