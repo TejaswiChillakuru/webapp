@@ -1,7 +1,7 @@
 name: build and deploy webapp
 
 env:
-  ARTIFACT_NAME: csye6225-webapp-${{ github.GITHUB_SHA }}.zip
+  ARTIFACT_NAME: csye6225-webapp-6.zip
   CODEDEPLOY_APPLICATION_NAME: assignment2
   CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME: assignment2
   AWS_REGION: us-east-1
@@ -26,7 +26,7 @@ jobs:
         zip -r ${{ env.ARTIFACT_NAME }} ./target/assignment2-0.0.1-SNAPSHOT.jar codedeploy_scripts/*.sh appspec.yml
         pwd
         ls -al
-        mv ${{ env.ARTIFACT_NAME }} codedeploy_artifact/
+        mv ${{ env.ARTIFACT_NAME }} codedeploy_artifact
         ls -al
         pwd
         cd codedeploy_artifact
