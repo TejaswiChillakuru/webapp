@@ -46,12 +46,5 @@ jobs:
         aws s3 sync ./codedeploy_artifact s3://${{ secrets.S3_CODE_DEPLOY_BUCKET }}
     - name: code Deployment Api call
       run: |
-        output=$(aws deploy create-deployment \
-          --application-name ${{ env.CODEDEPLOY_APPLICATION_NAME }} \
-          --deployment-group-name ${{ env.CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME }} \
-          --s3-location bucket codedeploy.dev.tejaswichillakuru.me \
-          --region ${{ env.AWS_REGION }} \
-          --deployment-config-name CodeDeployDefault.AllAtOnce)
-          echo $output
-          dId=$(echo $output | jq -r '.deploymetId')
-          aws deploy wait deployment-successful --deployment-id $dId
+        aws deploy register-application-revision --application-name ${{ env.CODEDEPLOY_APPLICATION_NAME }} --s3-location bucket=codedeploy.dev.tejaswichillakuru.me,bundleType=zip,key=csye6225-webapp-6.zip
+        aws deploy create-deployment --application-name ${{ env.CODEDEPLOY_APPLICATION_NAME }} --deployment-group-name ${{ env.CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME }} --s3-location bucket=codedeploy.dev.tejaswichillakuru.me,bundleType=zip,key=csye6225-webapp-6.zip --deployment-config-name CodeDeployDefault.AllAtOnce
