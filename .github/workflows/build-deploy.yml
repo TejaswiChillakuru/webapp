@@ -2,8 +2,8 @@ name: build and deploy webapp
 
 env:
   ARTIFACT_NAME: csye6225-webapp-6.zip
-  CODEDEPLOY_APPLICATION_NAME: assignment2
-  CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME: assignment2
+  CODEDEPLOY_APPLICATION_NAME: csye6225-webapp
+  CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME: csye6225-webapp
   AWS_REGION: us-east-1
 
 on:
