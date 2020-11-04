@@ -1,0 +1,1 @@
+sudo systemsctl stop tomcat9
