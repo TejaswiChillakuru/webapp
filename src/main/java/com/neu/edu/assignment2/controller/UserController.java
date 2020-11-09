@@ -37,9 +37,9 @@ public class UserController {
     @Autowired
     private UserDao userDao;
 
-    @Value("${amazonProperties.aws-access-key-id}")
+    @Value("${env.aws-access-key-id}")
     private String accessKey;
-    @Value("${amazonProperties.aws-secret-access-key}")
+    @Value("${env.aws-secret-access-key}")
     private String secretKey;
 
     @PostMapping(value = "/user")
