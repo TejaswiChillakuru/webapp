@@ -1,10 +1,16 @@
 name: build and deploy webapp
 
+
 env:
   ARTIFACT_NAME: csye6225-webapp-6.zip
   CODEDEPLOY_APPLICATION_NAME: csye6225-webapp
   CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME: csye6225-webapp-deployment
   AWS_REGION: us-east-1
+
+amazonProperties:
+  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID}}
+  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+  aws-region: ${{ env.AWS_REGION }}
 
 on:
   push:
@@ -14,6 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+          aws-region: ${{ env.AWS_REGION }}
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
       with:
@@ -35,12 +47,6 @@ jobs:
         cd ..
         pwd
         ls -al
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID}}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-        aws-region: ${{ env.AWS_REGION }}
     - name: Copy Artifact S3
       run: |
         aws s3 sync ./codedeploy_artifact s3://${{ secrets.S3_CODE_DEPLOY_BUCKET }}

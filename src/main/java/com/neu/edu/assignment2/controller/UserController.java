@@ -10,6 +10,7 @@ import com.neu.edu.assignment2.dao.UserDao;
 import com.neu.edu.assignment2.model.*;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -35,6 +36,11 @@ import java.util.UUID;
 public class UserController {
     @Autowired
     private UserDao userDao;
+
+    @Value("${amazonProperties.aws-access-key-id}")
+    private String accessKey;
+    @Value("${amazonProperties.aws-secret-access-key}")
+    private String secretKey;
 
     @PostMapping(value = "/user")
     @ApiOperation(value="Create a user")
@@ -198,8 +204,10 @@ public class UserController {
     }
     @PostMapping(value="/question/{question_id}/file",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Object uploadQuestionFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id , @RequestParam(value = "file") MultipartFile file){
-        String accessKey="AKIASVHASTC5EPAU5TKX";
-        String secretKey="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";
+//        String accessKey="AKIASVHASTC5EPAU5TKX";
+//        String secretKey="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";
+        String accessKey=this.accessKey;
+        String secretKey=this.secretKey;
         Question q = (Question) userDao.getQuestion(question_id);
         if(q==null)
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
@@ -245,8 +253,10 @@ public class UserController {
     }
     @DeleteMapping(value="/question/{question_id}/file/{file_id}")
     public Object deleteFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id, @PathVariable String file_id ){
-        String accessKey="AKIASVHASTC5EPAU5TKX";
-        String secretKey="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";
+        //        String accessKey="AKIASVHASTC5EPAU5TKX";
+//        String secretKey="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";
+        String accessKey=this.accessKey;
+        String secretKey=this.secretKey;
         QuestionFiles files = userDao.getFile(file_id);
         if(files==null)
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
@@ -277,8 +287,10 @@ public class UserController {
 
     @PostMapping(value="/question/{question_id}/answer/{answer_id}/file",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Object uploadAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id ,@PathVariable String answer_id , @RequestParam(value = "file") MultipartFile file){
-        String accessKey="AKIASVHASTC5EPAU5TKX";
-        String secretKey="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";
+        //        String accessKey="AKIASVHASTC5EPAU5TKX";
+//        String secretKey="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";
+        String accessKey=this.accessKey;
+        String secretKey=this.secretKey;
         Answers ans = userDao.getAnswer(answer_id);
         if(ans==null)
             return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
@@ -324,8 +336,10 @@ public class UserController {
 
     @DeleteMapping(value="/question/{question_id}/answer/{answer_id}/file/{file_id}")
     public Object deleteAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id,@PathVariable String answer_id, @PathVariable String file_id ){
-        String accessKey="AKIASVHASTC5EPAU5TKX";
-        String secretKey="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";
+        //        String accessKey="AKIASVHASTC5EPAU5TKX";
+//        String secretKey="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";
+        String accessKey=this.accessKey;
+        String secretKey=this.secretKey;
         AnswerFiles files = userDao.getAnswerFile(file_id);
         if(files==null)
             return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
