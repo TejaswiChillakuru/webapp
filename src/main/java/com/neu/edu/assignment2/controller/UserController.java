@@ -11,6 +11,7 @@ import com.neu.edu.assignment2.model.*;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -36,11 +37,12 @@ import java.util.UUID;
 public class UserController {
     @Autowired
     private UserDao userDao;
-
-    @Value("${env.aws-access-key-id}")
-    private String accessKey;
-    @Value("${env.aws-secret-access-key}")
-    private String secretKey;
+    @Autowired
+    private Environment env;
+//    @Value("${env.aws-access-key-id}")
+//    private String accessKey;
+//    @Value("${env.aws-secret-access-key}")
+//    private String secretKey;
 
     @PostMapping(value = "/user")
     @ApiOperation(value="Create a user")
@@ -206,8 +208,8 @@ public class UserController {
     public Object uploadQuestionFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id , @RequestParam(value = "file") MultipartFile file){
 //        String accessKey="AKIASVHASTC5EPAU5TKX";
 //        String secretKey="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";
-        String accessKey=this.accessKey;
-        String secretKey=this.secretKey;
+        String accessKey=env.getProperty("aws-access-key-id");
+        String secretKey=env.getProperty("aws-secret-access-key");
         Question q = (Question) userDao.getQuestion(question_id);
         if(q==null)
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
@@ -255,8 +257,8 @@ public class UserController {
     public Object deleteFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id, @PathVariable String file_id ){
         //        String accessKey="AKIASVHASTC5EPAU5TKX";
 //        String secretKey="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";
-        String accessKey=this.accessKey;
-        String secretKey=this.secretKey;
+        String accessKey=env.getProperty("aws-access-key-id");
+        String secretKey=env.getProperty("aws-secret-access-key");
         QuestionFiles files = userDao.getFile(file_id);
         if(files==null)
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
@@ -289,8 +291,8 @@ public class UserController {
     public Object uploadAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id ,@PathVariable String answer_id , @RequestParam(value = "file") MultipartFile file){
         //        String accessKey="AKIASVHASTC5EPAU5TKX";
 //        String secretKey="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";
-        String accessKey=this.accessKey;
-        String secretKey=this.secretKey;
+        String accessKey=env.getProperty("aws-access-key-id");
+        String secretKey=env.getProperty("aws-secret-access-key");
         Answers ans = userDao.getAnswer(answer_id);
         if(ans==null)
             return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
@@ -338,8 +340,8 @@ public class UserController {
     public Object deleteAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id,@PathVariable String answer_id, @PathVariable String file_id ){
         //        String accessKey="AKIASVHASTC5EPAU5TKX";
 //        String secretKey="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";
-        String accessKey=this.accessKey;
-        String secretKey=this.secretKey;
+        String accessKey=env.getProperty("aws-access-key-id");
+        String secretKey=env.getProperty("aws-secret-access-key");
         AnswerFiles files = userDao.getAnswerFile(file_id);
         if(files==null)
             return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
