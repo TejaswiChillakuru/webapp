@@ -10,6 +10,8 @@ import com.neu.edu.assignment2.dao.UserDao;
 import com.neu.edu.assignment2.model.*;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -44,9 +46,14 @@ public class UserController {
 //    @Value("${env.aws-secret-access-key}")
 //    private String secretKey;
 
+    private final static Logger logger = LoggerFactory.getLogger(UserController.class);
+
     @PostMapping(value = "/user")
     @ApiOperation(value="Create a user")
     public Object addUser(@RequestBody User user){
+        logger.info("This is information message");
+        logger.warn("This is Warning message");
+        logger.error("This is Error message");
         try{
             String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
             String password = "^([a-zA-Z0-9@*#]{8,15})$";
