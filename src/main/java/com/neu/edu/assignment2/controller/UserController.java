@@ -42,8 +42,8 @@ public class UserController {
     private UserDao userDao;
     @Autowired
     private Environment env;
-//    @Autowired
-//    private StatsDClient statsDClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    private StatsDClient statsDClient;
 
     private final static Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -53,7 +53,7 @@ public class UserController {
         logger.info("This is information message");
         logger.warn("This is Warning message");
         logger.error("This is Error message");
-        //statsDClient.incrementCounter("endpoint.homepage.http.get.version");
+        statsDClient.incrementCounter("endpoint.homepage.http.get.version");
         try{
             String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
             String password = "^([a-zA-Z0-9@*#]{8,15})$";
