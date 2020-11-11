@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.neu.edu.assignment2.dao.UserDao;
 import com.neu.edu.assignment2.model.*;
+import com.timgroup.statsd.StatsDClient;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -41,10 +42,8 @@ public class UserController {
     private UserDao userDao;
     @Autowired
     private Environment env;
-//    @Value("${env.aws-access-key-id}")
-//    private String accessKey;
-//    @Value("${env.aws-secret-access-key}")
-//    private String secretKey;
+//    @Autowired
+//    private StatsDClient statsDClient;
 
     private final static Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -54,6 +53,7 @@ public class UserController {
         logger.info("This is information message");
         logger.warn("This is Warning message");
         logger.error("This is Error message");
+        //statsDClient.incrementCounter("endpoint.homepage.http.get.version");
         try{
             String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
             String password = "^([a-zA-Z0-9@*#]{8,15})$";
