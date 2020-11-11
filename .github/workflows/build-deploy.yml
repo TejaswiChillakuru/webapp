@@ -25,7 +25,7 @@ jobs:
     - name: Build Deployment Artifact
       run: |
         mkdir codedeploy_artifact
-        zip -r ${{ env.ARTIFACT_NAME }} ./target/assignment2-0.0.1-SNAPSHOT.jar codedeploy_scripts/*.sh appspec.yml *.json *.iml
+        zip -r ${{ env.ARTIFACT_NAME }} ./target/assignment2-0.0.1-SNAPSHOT.jar codedeploy_scripts/*.sh appspec.yml 
         pwd
         ls -al
         mv ${{ env.ARTIFACT_NAME }} codedeploy_artifact
