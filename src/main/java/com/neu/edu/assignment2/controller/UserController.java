@@ -53,7 +53,8 @@ public class UserController {
         logger.info("This is information message");
         logger.warn("This is Warning message");
         logger.error("This is Error message");
-        client.incrementCounter("endpoint.homepage.http.get.version");
+        client.incrementCounter("/user");
+        //client.incrementCounter("endpoint.homepage.http.get.version");
         try{
             String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
             String password = "^([a-zA-Z0-9@*#]{8,15})$";
@@ -73,7 +74,7 @@ public class UserController {
     @GetMapping(value="/user/self")
     @ApiOperation(value="Get User Information")
     public Object getUser(@AuthenticationPrincipal User user){
-        System.out.println("password:"+user.getPassword());
+        client.incrementCounter("GET    /user/self");
         User u = userDao.getUser(user.getUserId());
         try {
             if (!u.getPassword().equalsIgnoreCase(user.getPassword())) {
@@ -87,6 +88,7 @@ public class UserController {
     @PutMapping(value="/user/self")
     @ApiOperation(value="Update User Information")
     public Object updateUser(@AuthenticationPrincipal User loggedUser , @RequestBody User user){
+        client.incrementCounter("POST   /user/self");
         try {
 
             if (user.getUsername() != null || user.getAccountCreated() != null || user.getAccountUpdated() != null) {
@@ -104,6 +106,7 @@ public class UserController {
     }
     @GetMapping("/user/{id}")
     public Object getUserDetails(@PathVariable String id){
+        client.incrementCounter("/user/{id}");
         try {
             return userDao.getUser(id);
         }catch(Exception e){
@@ -113,6 +116,7 @@ public class UserController {
     @PostMapping(value="/question")
     public Object addQuestions(@AuthenticationPrincipal User loggedUser,@RequestBody Question question){
         try {
+            client.incrementCounter("/question");
             question.setUserId(loggedUser.getUserId());
             Question q = userDao.addQuestion(question);;
             return new ResponseEntity<Question>(q,HttpStatus.CREATED);
@@ -123,6 +127,7 @@ public class UserController {
     @PostMapping(value="/question/{question_id}/answer")
     public Object addAnswers(@AuthenticationPrincipal User loggedUser, @RequestBody Answers answer, @PathVariable String question_id){
         try {
+            client.incrementCounter("/question/{question_id}/answer");
             answer.setUserId(loggedUser.getUserId());
             answer.setQuestionId(question_id);
             return userDao.addAnswer(answer);
@@ -132,6 +137,7 @@ public class UserController {
     }
     @PutMapping(value="/question/{question_id}/answer/{answer_id}")
     public Object updateAnswer(@AuthenticationPrincipal User loggedUser,@RequestBody Answers answer, @PathVariable String question_id, @PathVariable String answer_id){
+        client.incrementCounter("PUT    /question/{question_id}/answer/{answer_id}");
         Answers ans = userDao.getAnswer(answer_id);
         if(ans==null)
             return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
@@ -149,6 +155,7 @@ public class UserController {
     @GetMapping(value="/question/{question_id}/answer/{answer_id}")
     public Object getAnswer(@PathVariable String question_id, @PathVariable String answer_id){
         try {
+            client.incrementCounter("GET    /question/{question_id}/answer/{answer_id}");
             return userDao.getAnswer(answer_id);
         }catch(Exception e){
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
@@ -156,10 +163,12 @@ public class UserController {
     }
     @GetMapping(value="/questions")
     public List<Question> getAllQuestions(){
+        client.incrementCounter("/questions");
         return userDao.getAllQuestions();
     }
     @GetMapping(value="/question/{questionId}")
     public Object getQuestion(@PathVariable String questionId){
+        client.incrementCounter("/question/{questionId}");
         Question q =  userDao.getQuestion(questionId);
         if(q==null)
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
@@ -168,6 +177,7 @@ public class UserController {
     }
     @DeleteMapping(value="/question/{question_id}/answer/{answer_id}")
     public Object deleteAnswer(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id, @PathVariable String answer_id){
+        client.incrementCounter("DELETE    /question/{question_id}/answer/{answer_id}");
         Answers ans = userDao.getAnswer(answer_id);
         if(!ans.getUserId().equals(loggedUser.getUserId()))
             return new ResponseEntity<>("Cannot Delete Answer",HttpStatus.UNAUTHORIZED);
@@ -180,6 +190,7 @@ public class UserController {
     }
     @DeleteMapping(value="/question/{question_id}")
     public Object deleteQuestion(@AuthenticationPrincipal User loggedUser,@PathVariable String question_id){
+        client.incrementCounter("DELETE   /question/{question_id}");
         Question q = (Question)getQuestion(question_id);
         if(q==null)
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
@@ -196,6 +207,7 @@ public class UserController {
     }
     @PutMapping(value="/question/{question_id}")
     public Object updateQuestion(@AuthenticationPrincipal User loggedUser, @RequestBody Question question, @PathVariable String question_id){
+        client.incrementCounter("PUT   /question/{question_id}");
         question.setQuestionId(question_id);
         Question q = (Question) userDao.getQuestion(question_id);
         if(q==null)
@@ -213,7 +225,8 @@ public class UserController {
     }
     @PostMapping(value="/question/{question_id}/file",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Object uploadQuestionFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id , @RequestParam(value = "file") MultipartFile file){
-//        String accessKey="AKIASVHASTC5EPAU5TKX";
+        client.incrementCounter("/question/{question_id}/file");
+        //        String accessKey="AKIASVHASTC5EPAU5TKX";
 //        String secretKey="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";
         String accessKey=env.getProperty("aws-access-key-id");
         String secretKey=env.getProperty("aws-secret-access-key");
@@ -263,6 +276,7 @@ public class UserController {
     public Object deleteFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id, @PathVariable String file_id ){
         //        String accessKey="AKIASVHASTC5EPAU5TKX";
 //        String secretKey="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";
+        client.incrementCounter("/question/{question_id}/file/{file_id");
         String accessKey=env.getProperty("aws-access-key-id");
         String secretKey=env.getProperty("aws-secret-access-key");
         QuestionFiles files = userDao.getFile(file_id);
@@ -297,6 +311,7 @@ public class UserController {
     public Object uploadAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id ,@PathVariable String answer_id , @RequestParam(value = "file") MultipartFile file){
         //        String accessKey="AKIASVHASTC5EPAU5TKX";
 //        String secretKey="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";
+        client.incrementCounter("/question/{question_id}/answer/{answer_id}/file");
         String accessKey=env.getProperty("aws-access-key-id");
         String secretKey=env.getProperty("aws-secret-access-key");
         Answers ans = userDao.getAnswer(answer_id);
@@ -346,6 +361,7 @@ public class UserController {
     public Object deleteAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id,@PathVariable String answer_id, @PathVariable String file_id ){
         //        String accessKey="AKIASVHASTC5EPAU5TKX";
 //        String secretKey="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";
+        client.incrementCounter("/question/{question_id}/answer/{answer_id}/file/{file_id}");
         String accessKey=env.getProperty("aws-access-key-id");
         String secretKey=env.getProperty("aws-secret-access-key");
         AnswerFiles files = userDao.getAnswerFile(file_id);
