@@ -65,7 +65,7 @@ public class UserController {
             if(user.getPassword()!=null&&!user.getPassword().matches(password)){
                 return new ResponseEntity<>("Please enter valid password",HttpStatus.BAD_REQUEST);
             }
-            long endTime = System.nanoTime();
+            long endTime = System.currentTimeMillis();
 
             long duration = endTime - startTime;
             client.recordExecutionTime("/user",duration);
@@ -79,10 +79,18 @@ public class UserController {
     @GetMapping(value="/user/self")
     @ApiOperation(value="Get User Information")
     public Object getUser(@AuthenticationPrincipal User user){
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("GET    /user/self");
         User u = userDao.getUser(user.getUserId());
+        long dbEndTime = System.currentTimeMillis();
+        long dbDuration = dbEndTime - startTime;
+        client.recordExecutionTime("DB call GET   /user/self",dbDuration);
         try {
             if (!u.getPassword().equalsIgnoreCase(user.getPassword())) {
+                long endTime = System.currentTimeMillis();
+                long duration = endTime - startTime;
+                client.recordExecutionTime("GET   /user/self",duration);
+
                 return new ResponseEntity<>("Invalid Credentials",HttpStatus.FORBIDDEN);
             }
         }catch(Exception ex){
@@ -93,6 +101,7 @@ public class UserController {
     @PutMapping(value="/user/self")
     @ApiOperation(value="Update User Information")
     public Object updateUser(@AuthenticationPrincipal User loggedUser , @RequestBody User user){
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("POST   /user/self");
         try {
 
@@ -103,7 +112,15 @@ public class UserController {
             if(user.getPassword()!=null&&!user.getPassword().matches(password)){
                 return new ResponseEntity<>("Please enter valid password",HttpStatus.BAD_REQUEST);
             }
+            long dbStartTime = System.currentTimeMillis();
             userDao.updateUser(loggedUser.getUserId(), user);
+
+
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            client.recordExecutionTime("DB call POST   /user/self",endTime-dbStartTime);
+            client.recordExecutionTime("POST   /user/self",duration);
+
             return HttpStatus.NO_CONTENT;
         }catch(Exception e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request",e);
@@ -111,19 +128,37 @@ public class UserController {
     }
     @GetMapping("/user/{id}")
     public Object getUserDetails(@PathVariable String id){
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("/user/{id}");
         try {
-            return userDao.getUser(id);
+
+            long dbStartTime = System.currentTimeMillis();
+            Object ob = userDao.getUser(id);
+            long endTime = System.currentTimeMillis();
+            client.recordExecutionTime("Db call /user/{id}",endTime-dbStartTime);
+            long duration = endTime - startTime;
+            client.recordExecutionTime("/user/{id}",duration);
+            return ob;
         }catch(Exception e){
             return new ResponseEntity<>("User not found",HttpStatus.NOT_FOUND);
         }
     }
     @PostMapping(value="/question")
     public Object addQuestions(@AuthenticationPrincipal User loggedUser,@RequestBody Question question){
+        long startTime = System.currentTimeMillis();
         try {
             client.incrementCounter("/question");
             question.setUserId(loggedUser.getUserId());
-            Question q = userDao.addQuestion(question);;
+            Question q = userDao.addQuestion(question);
+            long dbEndTime = System.currentTimeMillis();
+            long dbDuration = dbEndTime - startTime;
+            client.recordExecutionTime("DB Call /question",dbDuration);
+
+
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            client.recordExecutionTime("/question",duration);
+
             return new ResponseEntity<Question>(q,HttpStatus.CREATED);
         }catch(Exception e){
             return new ResponseEntity<>("Bad Request",HttpStatus.BAD_REQUEST);
@@ -131,19 +166,29 @@ public class UserController {
     }
     @PostMapping(value="/question/{question_id}/answer")
     public Object addAnswers(@AuthenticationPrincipal User loggedUser, @RequestBody Answers answer, @PathVariable String question_id){
+        long startTime = System.currentTimeMillis();
         try {
             client.incrementCounter("/question/{question_id}/answer");
             answer.setUserId(loggedUser.getUserId());
             answer.setQuestionId(question_id);
+
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            client.recordExecutionTime("DB call /question/{question_id}/answer",duration);
+            client.recordExecutionTime("/question/{question_id}/answer",duration);
             return userDao.addAnswer(answer);
+
         }catch(Exception e){
             return new ResponseEntity<>("Bad Request",HttpStatus.BAD_REQUEST);
         }
     }
     @PutMapping(value="/question/{question_id}/answer/{answer_id}")
     public Object updateAnswer(@AuthenticationPrincipal User loggedUser,@RequestBody Answers answer, @PathVariable String question_id, @PathVariable String answer_id){
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("PUT    /question/{question_id}/answer/{answer_id}");
         Answers ans = userDao.getAnswer(answer_id);
+        long dbEndTime = System.currentTimeMillis();
+        client.recordExecutionTime("DB call GET    /question/{question_id}/answer/{answer_id}",dbEndTime-startTime);
         if(ans==null)
             return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
         if(!ans.getUserId().equals(loggedUser.getUserId()))
@@ -152,6 +197,11 @@ public class UserController {
         answer.setQuestionId(question_id);
         answer.setAnswerId(answer_id);
         Answers a = (Answers)userDao.updateAnswer(answer);
+
+        long endTime = System.currentTimeMillis();
+        long duration = endTime - startTime;
+        client.recordExecutionTime("PUT    /question/{question_id}/answer/{answer_id}",duration);
+
         if(a==null)
             return new ResponseEntity<>("Please enter valid input",HttpStatus.BAD_REQUEST);
         return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
@@ -159,22 +209,50 @@ public class UserController {
     }
     @GetMapping(value="/question/{question_id}/answer/{answer_id}")
     public Object getAnswer(@PathVariable String question_id, @PathVariable String answer_id){
+        long startTime = System.currentTimeMillis();
         try {
             client.incrementCounter("GET    /question/{question_id}/answer/{answer_id}");
-            return userDao.getAnswer(answer_id);
+
+            long dbStartTime = System.currentTimeMillis();
+            Object ob = userDao.getAnswer(answer_id);
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            client.recordExecutionTime("DB call GET    /question/{question_id}/answer/{answer_id}",endTime-dbStartTime);
+            client.recordExecutionTime("GET    /question/{question_id}/answer/{answer_id}",duration);
+            return ob;
+
         }catch(Exception e){
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         }
     }
     @GetMapping(value="/questions")
     public List<Question> getAllQuestions(){
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("/questions");
-        return userDao.getAllQuestions();
+
+        long endTime = System.currentTimeMillis();
+
+
+        long dbStartTime = System.currentTimeMillis();
+        List<Question> list = userDao.getAllQuestions();
+        long dbEndTime = System.currentTimeMillis();
+        long dbDuration = dbEndTime - dbStartTime;
+        client.recordExecutionTime("DB call duration /questions",dbDuration);
+        long duration = endTime - startTime;
+        client.recordExecutionTime("/questions",duration);
+        return list;
     }
     @GetMapping(value="/question/{questionId}")
     public Object getQuestion(@PathVariable String questionId){
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("/question/{questionId}");
         Question q =  userDao.getQuestion(questionId);
+
+        long endTime = System.currentTimeMillis();
+        long duration = endTime - startTime;
+        client.recordExecutionTime("db call duration /question/{questionId}",duration);
+        client.recordExecutionTime("/question/{questionId}",duration);
+
         if(q==null)
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         return q;
@@ -182,12 +260,23 @@ public class UserController {
     }
     @DeleteMapping(value="/question/{question_id}/answer/{answer_id}")
     public Object deleteAnswer(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id, @PathVariable String answer_id){
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("DELETE    /question/{question_id}/answer/{answer_id}");
         Answers ans = userDao.getAnswer(answer_id);
         if(!ans.getUserId().equals(loggedUser.getUserId()))
             return new ResponseEntity<>("Cannot Delete Answer",HttpStatus.UNAUTHORIZED);
         try {
+            long dbStartTime = System.currentTimeMillis();
             userDao.deleteAnswer(question_id, answer_id);
+            long dbEndTime = System.currentTimeMillis();
+            long dbDuration = dbEndTime-dbStartTime;
+            client.recordExecutionTime("DB call DELETE    /question/{question_id}/answer/{answer_id}",dbDuration);
+
+
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            client.recordExecutionTime("DELETE    /question/{question_id}/answer/{answer_id}",duration);
+
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }catch(Exception e){
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
@@ -195,6 +284,7 @@ public class UserController {
     }
     @DeleteMapping(value="/question/{question_id}")
     public Object deleteQuestion(@AuthenticationPrincipal User loggedUser,@PathVariable String question_id){
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("DELETE   /question/{question_id}");
         Question q = (Question)getQuestion(question_id);
         if(q==null)
@@ -204,7 +294,18 @@ public class UserController {
         if(!loggedUser.getUserId().equals(q.getUserId()))
             return new ResponseEntity<>("User Cannot Update/delete question",HttpStatus.UNAUTHORIZED);
         try {
+
+            long dbStartTime = System.currentTimeMillis();
             userDao.deleteQuestion(question_id, loggedUser.getUserId());
+            long dbEndTime = System.currentTimeMillis();
+            long dbDuration = dbEndTime-dbStartTime;
+            client.recordExecutionTime("DB call DELETE   /question/{question_id}",dbDuration);
+
+
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            client.recordExecutionTime("DELETE   /question/{question_id}",duration);
+
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }catch(Exception e){
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
@@ -212,6 +313,7 @@ public class UserController {
     }
     @PutMapping(value="/question/{question_id}")
     public Object updateQuestion(@AuthenticationPrincipal User loggedUser, @RequestBody Question question, @PathVariable String question_id){
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("PUT   /question/{question_id}");
         question.setQuestionId(question_id);
         Question q = (Question) userDao.getQuestion(question_id);
@@ -220,16 +322,26 @@ public class UserController {
         if(!loggedUser.getUserId().equals(q.getUserId()))
             return new ResponseEntity<>("User Cannot Update/delete question",HttpStatus.UNAUTHORIZED);
         try {
+            long dbStartTime = System.currentTimeMillis();
             q = (Question)userDao.updateQuestion(question, q,loggedUser.getUserId());
+            long dbEndTime = System.currentTimeMillis();
+            long dbDuration = dbEndTime-dbStartTime;
+            client.recordExecutionTime("db call PUT   /question/{question_id}",dbDuration);
         } catch (Exception e) {
             return new ResponseEntity<>("Unable to update question",HttpStatus.BAD_REQUEST);
         }
+
+        long endTime = System.currentTimeMillis();
+        long duration = endTime - startTime;
+        client.recordExecutionTime("PUT   /question/{question_id}",duration);
+
         if(q==null)
             return new ResponseEntity<>("Unable to update question",HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     @PostMapping(value="/question/{question_id}/file",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Object uploadQuestionFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id , @RequestParam(value = "file") MultipartFile file){
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("/question/{question_id}/file");
         //        String accessKey="AKIASVHASTC5EPAU5TKX";
 //        String secretKey="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";
@@ -260,7 +372,12 @@ public class UserController {
             f.setFileName(file.getName());
             f.setSize(String.valueOf(file.getSize()));
             f.setS3objectName(keyName);
+
+            long dbStartTime = System.currentTimeMillis();
             QuestionFiles output = userDao.saveFile(f);
+            long dbEndTime = System.currentTimeMillis();
+            long dbDuration = dbEndTime-dbStartTime;
+            client.recordExecutionTime("db call Duration /question/{question_id}/file",dbDuration);
 
             File convFile = new File(file.getOriginalFilename());
             convFile.createNewFile();
@@ -268,8 +385,17 @@ public class UserController {
             fos.write(file.getBytes());
             fos.close();
 
-
+            long s3StartTime = System.currentTimeMillis();
             s3.putObject(bucket_name,keyName,convFile);
+
+            long s3EndTime = System.currentTimeMillis();
+            long s3Duration = s3EndTime-s3StartTime;
+            client.recordExecutionTime("s3 Duration /question/{question_id}/file",s3Duration);
+
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            client.recordExecutionTime("/question/{question_id}/file",duration);
+
             return output;
 
         }catch(AmazonServiceException | IOException e){
@@ -279,9 +405,8 @@ public class UserController {
     }
     @DeleteMapping(value="/question/{question_id}/file/{file_id}")
     public Object deleteFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id, @PathVariable String file_id ){
-        //        String accessKey="AKIASVHASTC5EPAU5TKX";
-//        String secretKey="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";
-        client.incrementCounter("/question/{question_id}/file/{file_id");
+        long startTime = System.currentTimeMillis();
+        client.incrementCounter("/question/{question_id}/file/{file_id}");
         String accessKey=env.getProperty("aws-access-key-id");
         String secretKey=env.getProperty("aws-secret-access-key");
         QuestionFiles files = userDao.getFile(file_id);
@@ -294,7 +419,11 @@ public class UserController {
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
         String bucket_name = "webapp.tejaswi.chillakuru";
         try {
+            long s3StartTime = System.currentTimeMillis();
             s3.deleteObject(bucket_name, files.getS3objectName());
+            long s3EndTime = System.currentTimeMillis();
+            long s3Duration = s3EndTime-s3StartTime;
+            client.recordExecutionTime("s3 Duration /question/{question_id}/file/{file_id}",s3Duration);
         } catch (AmazonServiceException e) {
             System.err.println(e.getErrorMessage());
             System.exit(1);
@@ -303,19 +432,26 @@ public class UserController {
         if(!files.getUserId().equals(loggedUser.getUserId()))
             return new ResponseEntity<>("Cannot Delete File",HttpStatus.UNAUTHORIZED);
         try {
-            System.out.println(file_id);
+
+            long dbStartTime = System.currentTimeMillis();
             userDao.deleteFile(question_id, file_id);
+            long dbEndTime = System.currentTimeMillis();
+            long dbDuration = dbEndTime-dbStartTime;
+            client.recordExecutionTime("db call Duration /question/{question_id}/file/{file_id}",dbDuration);
+
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            client.recordExecutionTime("/question/{question_id}/file/{file_id",duration);
+
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }catch(Exception e){
-            System.out.println(e.getMessage());
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         }
     }
 
     @PostMapping(value="/question/{question_id}/answer/{answer_id}/file",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Object uploadAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id ,@PathVariable String answer_id , @RequestParam(value = "file") MultipartFile file){
-        //        String accessKey="AKIASVHASTC5EPAU5TKX";
-//        String secretKey="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";
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("/question/{question_id}/answer/{answer_id}/file");
         String accessKey=env.getProperty("aws-access-key-id");
         String secretKey=env.getProperty("aws-secret-access-key");
@@ -344,7 +480,13 @@ public class UserController {
             f.setFileName(file.getName());
             f.setSize(String.valueOf(file.getSize()));
             f.setS3objectName(keyName);
+
+
+            long dbStartTime = System.currentTimeMillis();
             AnswerFiles output = userDao.saveAnswerFile(f);
+            long dbEndTime = System.currentTimeMillis();
+            long dbDuration = dbEndTime-dbStartTime;
+            client.recordExecutionTime("db call Duration /question/{question_id}/answer/{answer_id}/file",dbDuration);
 
             File convFile = new File(file.getOriginalFilename());
             convFile.createNewFile();
@@ -352,8 +494,16 @@ public class UserController {
             fos.write(file.getBytes());
             fos.close();
 
-
+            long s3StartTime = System.currentTimeMillis();
             s3.putObject(bucket_name,keyName,convFile);
+            long s3EndTime = System.currentTimeMillis();
+            long s3Duration = s3EndTime-s3StartTime;
+            client.recordExecutionTime("s3 Duration /question/{question_id}/answer/{answer_id}/file",s3Duration);
+
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            client.recordExecutionTime("/question/{question_id}/answer/{answer_id}/file",duration);
+
             return output;
 
         }catch(AmazonServiceException | IOException e){
@@ -364,8 +514,7 @@ public class UserController {
 
     @DeleteMapping(value="/question/{question_id}/answer/{answer_id}/file/{file_id}")
     public Object deleteAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id,@PathVariable String answer_id, @PathVariable String file_id ){
-        //        String accessKey="AKIASVHASTC5EPAU5TKX";
-//        String secretKey="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";
+        long startTime = System.currentTimeMillis();
         client.incrementCounter("/question/{question_id}/answer/{answer_id}/file/{file_id}");
         String accessKey=env.getProperty("aws-access-key-id");
         String secretKey=env.getProperty("aws-secret-access-key");
@@ -378,8 +527,13 @@ public class UserController {
         AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
         String bucket_name = "webapp.tejaswi.chillakuru";
+
         try {
+            long s3StartTime = System.currentTimeMillis();
             s3.deleteObject(bucket_name, files.getS3objectName());
+            long s3EndTime = System.currentTimeMillis();
+            long s3Duration = s3EndTime-s3StartTime;
+            client.recordExecutionTime("s3 Duration /question/{question_id}/answer/{answer_id}/file/{file_id}",s3Duration);
         } catch (AmazonServiceException e) {
             System.err.println(e.getErrorMessage());
             System.exit(1);
@@ -388,8 +542,16 @@ public class UserController {
         if(!files.getUserId().equals(loggedUser.getUserId()))
             return new ResponseEntity<>("Cannot Delete File",HttpStatus.UNAUTHORIZED);
         try {
-            System.out.println(file_id);
+            long dbStartTime = System.currentTimeMillis();
             userDao.deleteAnswerFile(answer_id, file_id);
+            long dbEndTime = System.currentTimeMillis();
+            long dbDuration = dbEndTime-dbStartTime;
+            client.recordExecutionTime("db call Duration /question/{question_id}/answer/{answer_id}/file/{file_id}",dbDuration);
+
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            client.recordExecutionTime("/question/{question_id}/answer/{answer_id}/file/{file_id}",duration);
+
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }catch(Exception e){
             System.out.println(e.getMessage());
