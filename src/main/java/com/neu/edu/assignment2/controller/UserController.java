@@ -42,7 +42,6 @@ public class UserController {
     private UserDao userDao;
     @Autowired
     private Environment env;
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private StatsDClient statsDClient;
 
