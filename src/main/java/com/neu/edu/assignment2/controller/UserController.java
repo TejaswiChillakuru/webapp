@@ -46,10 +46,11 @@ public class UserController {
 //    private StatsDClient statsDClient;
 
     private final static Logger logger = LoggerFactory.getLogger(UserController.class);
-    private final NonBlockingStatsDClient client = new NonBlockingStatsDClient("my.prefix", "localhost", 8125);
+    private final NonBlockingStatsDClient client = new NonBlockingStatsDClient("webapp", "localhost", 8125);
     @PostMapping(value = "/user")
     @ApiOperation(value="Create a user")
     public Object addUser(@RequestBody User user){
+        long startTime = System.currentTimeMillis();
         logger.info("This is information message");
         logger.warn("This is Warning message");
         logger.error("This is Error message");
@@ -64,6 +65,10 @@ public class UserController {
             if(user.getPassword()!=null&&!user.getPassword().matches(password)){
                 return new ResponseEntity<>("Please enter valid password",HttpStatus.BAD_REQUEST);
             }
+            long endTime = System.nanoTime();
+
+            long duration = endTime - startTime;
+            client.recordExecutionTime("/user",duration);
             return userDao.addUser(user);
         }catch(Exception ex){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request",ex);
