@@ -222,7 +222,6 @@ public class UserController {
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         if(!loggedUser.getUserId().equals(q.getUserId()))
             return new ResponseEntity<>("User Cannot Update/delete question",HttpStatus.UNAUTHORIZED);
-        Map<String, String> env = System.getenv();
         BasicAWSCredentials creds = new BasicAWSCredentials(accessKey, secretKey);
         AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
