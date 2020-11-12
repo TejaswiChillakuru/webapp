@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class MetricsConfig {
     @Bean
     public StatsDClient statsDClient(
-            @Value("${metrics.statsd.host:localhost}") String host,
+            @Value("${metrics.statsd.host:statsd-host}") String host,
             @Value("${metrics.statsd.port:8125}") int port,
             @Value("${metrics.prefix:webapp}") String prefix
     ) {
