@@ -51,11 +51,8 @@ public class UserController {
     @ApiOperation(value="Create a user")
     public Object addUser(@RequestBody User user){
         long startTime = System.currentTimeMillis();
-        logger.info("This is information message");
-        logger.warn("This is Warning message");
-        logger.error("This is Error message");
+        logger.info("Starting addUser method");
         client.incrementCounter("/user");
-        //client.incrementCounter("endpoint.homepage.http.get.version");
         try{
             String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
             String password = "^([a-zA-Z0-9@*#]{8,15})$";
@@ -71,6 +68,7 @@ public class UserController {
             client.recordExecutionTime("/user",duration);
             return userDao.addUser(user);
         }catch(Exception ex){
+            logger.error("Bad Request");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request",ex);
         }
     }
@@ -79,6 +77,7 @@ public class UserController {
     @GetMapping(value="/user/self")
     @ApiOperation(value="Get User Information")
     public Object getUser(@AuthenticationPrincipal User user){
+        logger.info("Starting getUser method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("GET    /user/self");
         User u = userDao.getUser(user.getUserId());
@@ -94,6 +93,7 @@ public class UserController {
                 return new ResponseEntity<>("Invalid Credentials",HttpStatus.FORBIDDEN);
             }
         }catch(Exception ex){
+            logger.error("Invalid Credentials");
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid Credentials",ex);
         }
         return u;
@@ -101,6 +101,7 @@ public class UserController {
     @PutMapping(value="/user/self")
     @ApiOperation(value="Update User Information")
     public Object updateUser(@AuthenticationPrincipal User loggedUser , @RequestBody User user){
+        logger.info("Starting updateUser method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("POST   /user/self");
         try {
@@ -123,11 +124,13 @@ public class UserController {
 
             return HttpStatus.NO_CONTENT;
         }catch(Exception e){
+            logger.error("Bad Request");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request",e);
         }
     }
     @GetMapping("/user/{id}")
     public Object getUserDetails(@PathVariable String id){
+        logger.info("starting getUserDetails method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("/user/{id}");
         try {
@@ -140,11 +143,13 @@ public class UserController {
             client.recordExecutionTime("/user/{id}",duration);
             return ob;
         }catch(Exception e){
+            logger.error("User not found");
             return new ResponseEntity<>("User not found",HttpStatus.NOT_FOUND);
         }
     }
     @PostMapping(value="/question")
     public Object addQuestions(@AuthenticationPrincipal User loggedUser,@RequestBody Question question){
+        logger.info("starting addQuestions method");
         long startTime = System.currentTimeMillis();
         try {
             client.incrementCounter("/question");
@@ -161,11 +166,13 @@ public class UserController {
 
             return new ResponseEntity<Question>(q,HttpStatus.CREATED);
         }catch(Exception e){
+            logger.error("Bad Request");
             return new ResponseEntity<>("Bad Request",HttpStatus.BAD_REQUEST);
         }
     }
     @PostMapping(value="/question/{question_id}/answer")
     public Object addAnswers(@AuthenticationPrincipal User loggedUser, @RequestBody Answers answer, @PathVariable String question_id){
+        logger.info("starting addAnswers method");
         long startTime = System.currentTimeMillis();
         try {
             client.incrementCounter("/question/{question_id}/answer");
@@ -179,11 +186,13 @@ public class UserController {
             return userDao.addAnswer(answer);
 
         }catch(Exception e){
+            logger.error("Bad Request");
             return new ResponseEntity<>("Bad Request",HttpStatus.BAD_REQUEST);
         }
     }
     @PutMapping(value="/question/{question_id}/answer/{answer_id}")
     public Object updateAnswer(@AuthenticationPrincipal User loggedUser,@RequestBody Answers answer, @PathVariable String question_id, @PathVariable String answer_id){
+        logger.info("starting updateAnswer method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("PUT    /question/{question_id}/answer/{answer_id}");
         Answers ans = userDao.getAnswer(answer_id);
@@ -209,6 +218,7 @@ public class UserController {
     }
     @GetMapping(value="/question/{question_id}/answer/{answer_id}")
     public Object getAnswer(@PathVariable String question_id, @PathVariable String answer_id){
+        logger.info("starting getAnswer method");
         long startTime = System.currentTimeMillis();
         try {
             client.incrementCounter("GET    /question/{question_id}/answer/{answer_id}");
@@ -222,11 +232,13 @@ public class UserController {
             return ob;
 
         }catch(Exception e){
+            logger.error("Id not found");
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         }
     }
     @GetMapping(value="/questions")
     public List<Question> getAllQuestions(){
+        logger.info("starting getAllQuestions method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("/questions");
 
@@ -244,6 +256,7 @@ public class UserController {
     }
     @GetMapping(value="/question/{questionId}")
     public Object getQuestion(@PathVariable String questionId){
+        logger.info("starting getQuestion method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("/question/{questionId}");
         Question q =  userDao.getQuestion(questionId);
@@ -260,6 +273,7 @@ public class UserController {
     }
     @DeleteMapping(value="/question/{question_id}/answer/{answer_id}")
     public Object deleteAnswer(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id, @PathVariable String answer_id){
+        logger.info("starting deleteAnswer method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("DELETE    /question/{question_id}/answer/{answer_id}");
         Answers ans = userDao.getAnswer(answer_id);
@@ -279,11 +293,13 @@ public class UserController {
 
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }catch(Exception e){
+            logger.error("Id not found");
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         }
     }
     @DeleteMapping(value="/question/{question_id}")
     public Object deleteQuestion(@AuthenticationPrincipal User loggedUser,@PathVariable String question_id){
+        logger.info("starting deleteQuestion method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("DELETE   /question/{question_id}");
         Question q = (Question)getQuestion(question_id);
@@ -308,11 +324,13 @@ public class UserController {
 
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }catch(Exception e){
+            logger.error("Id not found");
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         }
     }
     @PutMapping(value="/question/{question_id}")
     public Object updateQuestion(@AuthenticationPrincipal User loggedUser, @RequestBody Question question, @PathVariable String question_id){
+        logger.info("starting updateQuestion method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("PUT   /question/{question_id}");
         question.setQuestionId(question_id);
@@ -328,6 +346,7 @@ public class UserController {
             long dbDuration = dbEndTime-dbStartTime;
             client.recordExecutionTime("db call PUT   /question/{question_id}",dbDuration);
         } catch (Exception e) {
+            logger.error("Unable to update question");
             return new ResponseEntity<>("Unable to update question",HttpStatus.BAD_REQUEST);
         }
 
@@ -341,12 +360,13 @@ public class UserController {
     }
     @PostMapping(value="/question/{question_id}/file",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Object uploadQuestionFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id , @RequestParam(value = "file") MultipartFile file){
+        logger.info("starting uploadQuestionFile method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("/question/{question_id}/file");
         //        String accessKey="AKIASVHASTC5EPAU5TKX";
 //        String secretKey="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";
-        String accessKey=env.getProperty("aws-access-key-id");
-        String secretKey=env.getProperty("aws-secret-access-key");
+//        String accessKey=env.getProperty("aws-access-key-id");
+//        String secretKey=env.getProperty("aws-secret-access-key");
         Question q = (Question) userDao.getQuestion(question_id);
         if(q==null)
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
@@ -399,24 +419,23 @@ public class UserController {
             return output;
 
         }catch(AmazonServiceException | IOException e){
-            System.out.println(e.getMessage());
+            logger.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
     @DeleteMapping(value="/question/{question_id}/file/{file_id}")
     public Object deleteFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id, @PathVariable String file_id ){
+        logger.info("starting deleteFile method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("/question/{question_id}/file/{file_id}");
-        String accessKey=env.getProperty("aws-access-key-id");
-        String secretKey=env.getProperty("aws-secret-access-key");
+
         QuestionFiles files = userDao.getFile(file_id);
         if(files==null)
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         if(!loggedUser.getUserId().equals(files.getUserId()))
             return new ResponseEntity<>("User Cannot Update/delete question",HttpStatus.UNAUTHORIZED);
-        BasicAWSCredentials creds = new BasicAWSCredentials(accessKey, secretKey);
-        AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
-        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
+
+        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
         String bucket_name = "webapp.tejaswi.chillakuru";
         try {
             long s3StartTime = System.currentTimeMillis();
@@ -425,12 +444,14 @@ public class UserController {
             long s3Duration = s3EndTime-s3StartTime;
             client.recordExecutionTime("s3 Duration /question/{question_id}/file/{file_id}",s3Duration);
         } catch (AmazonServiceException e) {
-            System.err.println(e.getErrorMessage());
+            logger.error(e.getErrorMessage());
             System.exit(1);
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         }
-        if(!files.getUserId().equals(loggedUser.getUserId()))
-            return new ResponseEntity<>("Cannot Delete File",HttpStatus.UNAUTHORIZED);
+        if(!files.getUserId().equals(loggedUser.getUserId())) {
+            logger.warn("Cannot Delete File");
+            return new ResponseEntity<>("Cannot Delete File", HttpStatus.UNAUTHORIZED);
+        }
         try {
 
             long dbStartTime = System.currentTimeMillis();
@@ -445,24 +466,24 @@ public class UserController {
 
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }catch(Exception e){
+            logger.error("Id not found");
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         }
     }
 
     @PostMapping(value="/question/{question_id}/answer/{answer_id}/file",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Object uploadAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id ,@PathVariable String answer_id , @RequestParam(value = "file") MultipartFile file){
+        logger.info("starting uploadAnswerFile method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("/question/{question_id}/answer/{answer_id}/file");
-        String accessKey=env.getProperty("aws-access-key-id");
-        String secretKey=env.getProperty("aws-secret-access-key");
+
         Answers ans = userDao.getAnswer(answer_id);
         if(ans==null)
             return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
         if(!ans.getUserId().equals(loggedUser.getUserId()))
             return new ResponseEntity<>("Cannot Upload File",HttpStatus.UNAUTHORIZED);
-        BasicAWSCredentials creds = new BasicAWSCredentials(accessKey, secretKey);
-        AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
-        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
+
+        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
         String bucket_name = "webapp.tejaswi.chillakuru";
         UUID uuid = UUID.randomUUID();
         String keyName = answer_id+"/"+uuid.toString()+"/"+file.getOriginalFilename();
@@ -507,25 +528,24 @@ public class UserController {
             return output;
 
         }catch(AmazonServiceException | IOException e){
-            System.out.println(e.getMessage());
+            logger.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
     @DeleteMapping(value="/question/{question_id}/answer/{answer_id}/file/{file_id}")
     public Object deleteAnswerFile(@AuthenticationPrincipal User loggedUser, @PathVariable String question_id,@PathVariable String answer_id, @PathVariable String file_id ){
+        logger.info("starting deleteAnswerFile method");
         long startTime = System.currentTimeMillis();
         client.incrementCounter("/question/{question_id}/answer/{answer_id}/file/{file_id}");
-        String accessKey=env.getProperty("aws-access-key-id");
-        String secretKey=env.getProperty("aws-secret-access-key");
+
         AnswerFiles files = userDao.getAnswerFile(file_id);
         if(files==null)
             return new ResponseEntity<>("Id Not Found",HttpStatus.NOT_FOUND);
         if(!files.getUserId().equals(loggedUser.getUserId()))
             return new ResponseEntity<>("Cannot Delete File",HttpStatus.UNAUTHORIZED);
-        BasicAWSCredentials creds = new BasicAWSCredentials(accessKey, secretKey);
-        AWSStaticCredentialsProvider provider = new AWSStaticCredentialsProvider(creds);
-        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withCredentials(provider).withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
+
+        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion("us-east-1").withForceGlobalBucketAccessEnabled(true).build();
         String bucket_name = "webapp.tejaswi.chillakuru";
 
         try {
@@ -554,7 +574,8 @@ public class UserController {
 
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }catch(Exception e){
-            System.out.println(e.getMessage());
+            logger.error("Id not found");
+            logger.error(e.getMessage());
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         }
     }
