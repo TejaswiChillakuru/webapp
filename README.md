@@ -14,5 +14,6 @@ mvn test: it will compile the code of your application and your tests. It will t
 mvn install: it will do everything mvn test does and then if everything looks file it will install the library or the application into your local maven repository (typically under /.m2). In this way you could use this library from other projects you want to build on the same machine
 
 Note: Update the db connections in your properties file.
+test
 
 
