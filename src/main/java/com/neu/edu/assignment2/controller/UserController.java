@@ -169,7 +169,7 @@ public class UserController {
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
             client.recordExecutionTime("/question",duration);
-            amazonSNSClient.sendEmailToUser(loggedUser.getUsername());
+            amazonSNSClient.sendEmailToUser(loggedUser.getUsername(),q.getQuestionId());
 //            SnsClient snsClient = SnsClient.builder()
 //                    .region(Region.US_EAST_1)
 //                    .build();
