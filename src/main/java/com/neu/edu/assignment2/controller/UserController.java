@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.neu.edu.assignment2.dao.UserDao;
 import com.neu.edu.assignment2.model.*;
+import com.neu.edu.assignment2.service.AmazonSNSClient;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.FilenameUtils;
@@ -24,6 +25,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
+import software.amazon.awssdk.services.sns.model.PublishResponse;
+import software.amazon.awssdk.services.sns.model.SnsException;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
@@ -42,8 +48,8 @@ public class UserController {
     private UserDao userDao;
     @Autowired
     private Environment env;
-//    @Autowired
-//    private StatsDClient statsDClient;
+    @Autowired
+    private AmazonSNSClient amazonSNSClient;
 
     private final static Logger logger = LoggerFactory.getLogger(UserController.class);
     private final NonBlockingStatsDClient client = new NonBlockingStatsDClient("webapp", "localhost", 8125);
@@ -163,7 +169,11 @@ public class UserController {
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
             client.recordExecutionTime("/question",duration);
-
+            amazonSNSClient.sendEmailToUser(loggedUser.getUsername());
+//            SnsClient snsClient = SnsClient.builder()
+//                    .region(Region.US_EAST_1)
+//                    .build();
+//            pubTopic(snsClient,q.getQuestionId(),"user-updates-topic");
             return new ResponseEntity<Question>(q,HttpStatus.CREATED);
         }catch(Exception e){
             logger.error("Bad Request");
@@ -579,5 +589,6 @@ public class UserController {
             return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
         }
     }
+
 
 }
