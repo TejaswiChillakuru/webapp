@@ -22,7 +22,7 @@ public class AmazonSNSClient {
 
     public void sendEmailToUser(String message) {
         AmazonSNS snsClient =  AmazonSNSClientBuilder.standard().withRegion(Regions.US_EAST_1).withCredentials(DefaultAWSCredentialsProviderChain.getInstance()).build();
-        PublishRequest request = new PublishRequest("arn:aws:sns:us-east-1:597569852494:user-updates-topic", message);
+        PublishRequest request = new PublishRequest("arn:aws:sns:us-east-1:183007090874:user-updates-topic", message);
         logger.info("AmazonSNSClientClass- Published Request : " + request.toString() + "--------");
         try{
             PublishResult result = snsClient.publish(request);
