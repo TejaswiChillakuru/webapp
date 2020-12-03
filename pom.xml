@@ -93,7 +93,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.11.267</version>
+            <version>1.11.911</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.timgroup/java-statsd-client -->
         <dependency>
@@ -133,7 +133,7 @@
             <version>2.15.36</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-sns -->
-        
+
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-sns</artifactId>
