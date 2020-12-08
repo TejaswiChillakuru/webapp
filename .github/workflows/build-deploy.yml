@@ -9,7 +9,7 @@ env:
   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
 
 on:
-  push:
+  workflow_dispatch:
     branches: [master]
 jobs:
   ci_cd:
