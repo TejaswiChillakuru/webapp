@@ -306,7 +306,7 @@ public class UserController {
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
             client.recordExecutionTime("DELETE    /question/{question_id}/answer/{answer_id}",duration);
-            amazonSNSClient.sendEmailToUser(u.getUsername(),question_id,"");
+            amazonSNSClient.sendEmailToUser(u.getUsername(),question_id,"no text");
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }catch(Exception e){
             logger.error("Id not found");
