@@ -188,12 +188,13 @@ public class UserController {
             client.incrementCounter("/question/{question_id}/answer");
             answer.setUserId(loggedUser.getUserId());
             answer.setQuestionId(question_id);
-
+            Question q = userDao.getQuestion(question_id);
+            User u = userDao.getUser(q.getUserId());
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
             client.recordExecutionTime("DB call /question/{question_id}/answer",duration);
             client.recordExecutionTime("/question/{question_id}/answer",duration);
-            amazonSNSClient.sendEmailToUser(loggedUser.getUsername(),question_id, answer.getAnswerText());
+            amazonSNSClient.sendEmailToUser(u.getUsername(),question_id, answer.getAnswerText());
             return userDao.addAnswer(answer);
 
         }catch(Exception e){
@@ -218,10 +219,13 @@ public class UserController {
         answer.setAnswerId(answer_id);
         Answers a = (Answers)userDao.updateAnswer(answer);
 
+        Question q = userDao.getQuestion(question_id);
+        User u = userDao.getUser(q.getUserId());
+
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
         client.recordExecutionTime("PUT    /question/{question_id}/answer/{answer_id}",duration);
-        amazonSNSClient.sendEmailToUser(loggedUser.getUsername(),question_id,answer.getAnswerText());
+        amazonSNSClient.sendEmailToUser(u.getUsername(),question_id,answer.getAnswerText());
         if(a==null)
             return new ResponseEntity<>("Please enter valid input",HttpStatus.BAD_REQUEST);
         return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
@@ -296,12 +300,13 @@ public class UserController {
             long dbEndTime = System.currentTimeMillis();
             long dbDuration = dbEndTime-dbStartTime;
             client.recordExecutionTime("DB call DELETE    /question/{question_id}/answer/{answer_id}",dbDuration);
-
+            Question q = userDao.getQuestion(question_id);
+            User u = userDao.getUser(q.getUserId());
 
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
             client.recordExecutionTime("DELETE    /question/{question_id}/answer/{answer_id}",duration);
-            amazonSNSClient.sendEmailToUser(loggedUser.getUsername(),question_id,"");
+            amazonSNSClient.sendEmailToUser(u.getUsername(),question_id,"");
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }catch(Exception e){
             logger.error("Id not found");
