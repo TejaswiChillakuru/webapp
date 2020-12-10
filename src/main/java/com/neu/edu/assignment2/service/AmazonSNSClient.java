@@ -26,13 +26,10 @@ public class AmazonSNSClient {
     public void sendEmailToUser(String message, String id, String answerText) {
         AmazonSNS snsClient =  AmazonSNSClientBuilder.standard().withRegion(Regions.US_EAST_1).withCredentials(DefaultAWSCredentialsProviderChain.getInstance()).build();
         //PublishRequest request = new PublishRequest()
-        PublishRequest request = new PublishRequest("arn:aws:sns:us-east-1:183007090874:user-updates-topic"+answerText, message,id);
-//        Map<String, MessageAttributeValue> map = new HashMap<>();
-//        MessageAttributeValue val = new MessageAttributeValue();
-//        val.setStringValue(answerText);
-//        val.setDataType("String");
-//        map.put("answerText",val);
-//        request.setMessageAttributes(map);
+        PublishRequest request = new PublishRequest("arn:aws:sns:us-east-1:183007090874:user-updates-topic", message,id);
+        final Map<String, MessageAttributeValue> messageAttributes = new HashMap<>();
+        messageAttributes.put("answerText", new MessageAttributeValue().withDataType("String").withStringValue(answerText));
+        request.setMessageAttributes(messageAttributes);
         logger.info("AmazonSNSClientClass- Published Request : " + request.toString() + "--------");
         try{
             PublishResult result = snsClient.publish(request);
