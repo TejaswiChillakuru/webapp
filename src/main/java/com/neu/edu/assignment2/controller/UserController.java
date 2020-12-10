@@ -193,7 +193,7 @@ public class UserController {
             long duration = endTime - startTime;
             client.recordExecutionTime("DB call /question/{question_id}/answer",duration);
             client.recordExecutionTime("/question/{question_id}/answer",duration);
-            amazonSNSClient.sendEmailToUser(loggedUser.getUsername(),question_id);
+            amazonSNSClient.sendEmailToUser(loggedUser.getUsername(),question_id, answer.getAnswerText());
             return userDao.addAnswer(answer);
 
         }catch(Exception e){
@@ -221,7 +221,7 @@ public class UserController {
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
         client.recordExecutionTime("PUT    /question/{question_id}/answer/{answer_id}",duration);
-        amazonSNSClient.sendEmailToUser(loggedUser.getUsername(),question_id);
+        amazonSNSClient.sendEmailToUser(loggedUser.getUsername(),question_id,answer.getAnswerText());
         if(a==null)
             return new ResponseEntity<>("Please enter valid input",HttpStatus.BAD_REQUEST);
         return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
@@ -301,7 +301,7 @@ public class UserController {
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
             client.recordExecutionTime("DELETE    /question/{question_id}/answer/{answer_id}",duration);
-            amazonSNSClient.sendEmailToUser(loggedUser.getUsername(),question_id);
+            amazonSNSClient.sendEmailToUser(loggedUser.getUsername(),question_id,"noText");
             return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
         }catch(Exception e){
             logger.error("Id not found");
