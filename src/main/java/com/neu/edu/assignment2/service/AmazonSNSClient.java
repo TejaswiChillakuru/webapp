@@ -30,6 +30,7 @@ public class AmazonSNSClient {
         Map<String, MessageAttributeValue> map = new HashMap<>();
         MessageAttributeValue val = new MessageAttributeValue();
         val.setStringValue(answerText);
+        val.setDataType("String");
         map.put("answerText",val);
         request.setMessageAttributes(map);
         logger.info("AmazonSNSClientClass- Published Request : " + request.toString() + "--------");
